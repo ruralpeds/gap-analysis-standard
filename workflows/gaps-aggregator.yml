@@ -1,0 +1,17 @@
+name: Aggregate Gaps
+on:
+  pull_request:
+    paths:
+      - 'GAPS.md'
+      - 'gaps.yml'
+  schedule:
+    - cron: '0 0 * * 0'
+
+jobs:
+  aggregate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Collect gaps from all repos
+        run: |
+          echo "Gap aggregation would run here"
