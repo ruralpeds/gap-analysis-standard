@@ -12,7 +12,6 @@
 |----|-------|----------|----------|---------|-------|
 | GAP-001 | Create ruralpeds/gap-dashboard aggregator repo | P1 | infrastructure | 2026-04-28 | see docs/aggregation.md |
 | GAP-002 | Tag v1.0 and v1 floating release | P1 | infrastructure | 2026-04-28 | enables @v1 pinning in consumers |
-| GAP-003 | Bootstrap ruralpeds/Peds (pilot repo) | P1 | infrastructure | 2026-04-28 | first consumer rollout |
 | GAP-004 | Bootstrap ruralpeds/textbook | P2 | infrastructure | 2026-04-28 | has 18 gaps already partially written |
 | GAP-005 | Bootstrap timothyhartzog/Patient-simulation-julia | P2 | infrastructure | 2026-04-28 | convert SIMULATION_GAP_ANALYSIS.json |
 | GAP-006 | Bootstrap ruralpeds/rust-sci-core | P2 | infrastructure | 2026-04-28 | |
@@ -30,6 +29,7 @@
 
 ---
 
+| GAP-003 | Bootstrap ruralpeds/Peds (pilot repo) | P1 | infrastructure | 2026-04-28 | #pilot |
 ## Abandoned
 
 | ID | Title | Reason |
