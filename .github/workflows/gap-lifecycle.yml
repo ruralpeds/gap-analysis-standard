@@ -1,0 +1,71 @@
+name: Gap Lifecycle
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Reusable workflow — Rural Peds Gap Analysis Standard v1.0
+# https://github.com/ruralpeds/gap-analysis-standard
+#
+# Called from consumer repos via:
+#
+#   name: Gap Lifecycle
+#   on:
+#     pull_request:
+#       types: [closed]
+#   jobs:
+#     lifecycle:
+#       uses: ruralpeds/gap-analysis-standard/.github/workflows/gap-lifecycle.yml@v1
+#       with:
+#         gaps_file: 'GAPS.md'
+#       secrets: inherit
+#
+# On every merged PR, this workflow:
+#   1. Scans the PR body for "Closes GAP-NNN" references
+#   2. Moves matching rows from Active → Completed in GAPS.md
+#   3. Commits the updated file back to the default branch
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_call:
+    inputs:
+      gaps_file:
+        description: 'Path to GAPS.md relative to repo root'
+        type: string
+        required: false
+        default: 'GAPS.md'
+    secrets:
+      # Inherits GITHUB_TOKEN automatically via `secrets: inherit` in caller.
+      # No additional secrets required for standard use.
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  update-gaps:
+    # Only run when a PR is actually merged (not just closed/rejected)
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          # Fetch the default branch so we can push the updated GAPS.md
+          ref: ${{ github.event.pull_request.base.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Gap Lifecycle Action
+        uses: ruralpeds/gap-analysis-standard/actions/update-gaps@v1
+        with:
+          gaps_file: ${{ inputs.gaps_file }}
+          pr_body: ${{ github.event.pull_request.body }}
+          pr_number: ${{ github.event.pull_request.number }}
+          merged_date: ${{ github.event.pull_request.merged_at }}
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Gap Lifecycle Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**PR:** #${{ github.event.pull_request.number }} — ${{ github.event.pull_request.title }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Gaps moved:** ${{ steps.run.outputs.gaps_moved || '0' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Gap IDs:** ${{ steps.run.outputs.gap_ids || 'none' }}" >> $GITHUB_STEP_SUMMARY

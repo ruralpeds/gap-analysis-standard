@@ -1,0 +1,71 @@
+name: 'Update Gaps'
+description: >
+  Reads a GAPS.md file and moves gap rows from Active to Completed
+  when the PR body contains "Closes GAP-NNN" references.
+  Part of the Rural Peds Gap Analysis Standard v1.0.
+
+author: 'ruralpeds'
+
+branding:
+  icon: 'check-square'
+  color: 'green'
+
+inputs:
+  gaps_file:
+    description: 'Path to GAPS.md relative to repo root'
+    required: false
+    default: 'GAPS.md'
+  pr_body:
+    description: 'Full text of the PR body'
+    required: true
+  pr_number:
+    description: 'PR number (used for the Completed table link)'
+    required: true
+  merged_date:
+    description: 'ISO date of the PR merge (YYYY-MM-DD). Defaults to today.'
+    required: false
+    default: ''
+
+outputs:
+  gaps_moved:
+    description: 'Number of gaps moved to Completed'
+    value: ${{ steps.run.outputs.gaps_moved }}
+  gap_ids:
+    description: 'Comma-separated list of gap IDs that were moved'
+    value: ${{ steps.run.outputs.gap_ids }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Run update_gaps.py
+      id: run
+      shell: bash
+      run: |
+        MERGED_DATE="${{ inputs.merged_date }}"
+        if [ -z "$MERGED_DATE" ]; then
+          MERGED_DATE=$(date +%Y-%m-%d)
+        fi
+
+        python "${{ github.action_path }}/update_gaps.py" \
+          --gaps-file "${{ inputs.gaps_file }}" \
+          --pr-body "${{ inputs.pr_body }}" \
+          --pr-number "${{ inputs.pr_number }}" \
+          --merged-date "$MERGED_DATE"
+
+    - name: Commit updated GAPS.md
+      shell: bash
+      run: |
+        if git diff --quiet "${{ inputs.gaps_file }}"; then
+          echo "No changes to commit."
+        else
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "${{ inputs.gaps_file }}"
+          git commit -m "chore: auto-close gap(s) via PR #${{ inputs.pr_number }} [skip ci]"
+          git push
+        fi

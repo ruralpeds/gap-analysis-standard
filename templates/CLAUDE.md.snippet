@@ -1,0 +1,15 @@
+## Gap Analysis
+
+This repo follows the Rural Peds Gap Analysis Standard v1.0.
+Spec: https://github.com/ruralpeds/gap-analysis-standard/blob/main/SPEC.md
+
+- **Canonical list:** `GAPS.md` at repo root — read this first at the start of every session.
+- **When starting work:** check the Active table for P0/P1 items before picking up new work.
+- **When completing work:** include `Closes GAP-NNN` in the PR body. The gap-lifecycle
+  action will automatically move the row from Active to Completed on merge.
+- **When adding a gap:** append a new row to the Active table with the next sequential
+  `GAP-NNN` ID. Keep Title ≤60 chars. Fill Priority (P0/P1/P2/P3) and Category
+  (safety/quality/content/infrastructure/docs/research/teaching/creative/general).
+- **Never edit** the Completed or Abandoned tables manually — the action owns those.
+- **Cross-repo refs:** use `ruralpeds/<repo>#GAP-NNN` syntax in the Notes column.
+- **Priority guidance:** P0 = blocking, P1 = this sprint, P2 = next sprint, P3 = backlog.
