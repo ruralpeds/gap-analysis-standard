@@ -2,27 +2,23 @@
 # =============================================================================
 # bootstrap-gaps.sh
 # Rural Peds Gap Analysis Standard v1.0
-# https://github.com/ruralpeds/gap-analysis-standard
+# Spec: https://github.com/ruralpeds/gap-analysis-standard/blob/main/SPEC.md
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/ruralpeds/gap-analysis-standard/main/templates/bootstrap-gaps.sh | bash
 #
-# Or clone first and run locally:
-#   bash templates/bootstrap-gaps.sh
-#
 # What it does:
-#   1. Creates GAPS.md from the standard template (if not present)
-#   2. Appends the CLAUDE.md gap-analysis block (if not already present)
-#   3. Creates .github/workflows/gaps.yml (the reusable workflow caller)
-#   4. Prints next steps
+#   1. Creates GAPS.md from the standard template
+#   2. Appends the CLAUDE.md gap-analysis block
+#   3. Creates .github/workflows/gaps.yml (calls org reusable workflow)
 # =============================================================================
 
 set -euo pipefail
 
+ORG_GITHUB="ruralpeds/.github"
 STANDARD_REPO="ruralpeds/gap-analysis-standard"
-STANDARD_REF="v1"
 RAW_BASE="https://raw.githubusercontent.com/${STANDARD_REPO}/main"
-REPO_NAME=$(basename "$(git rev-parse --show-toplevel 2>/dev/null || echo "$(pwd)")")
+REPO_NAME=$(basename "$(git rev-parse --show-toplevel 2>/dev/null || pwd)")
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -33,8 +29,7 @@ echo ""
 
 # ── Step 1: GAPS.md ──────────────────────────────────────────────────────────
 if [ -f "GAPS.md" ]; then
-  echo "✓ GAPS.md already exists — skipping creation."
-  echo "  Edit it manually or run: gap add \"Your gap title\" --priority P1 --category content"
+  echo "✓ GAPS.md already exists — skipping."
 else
   echo "→ Creating GAPS.md ..."
   curl -fsSL "${RAW_BASE}/templates/GAPS.md" \
@@ -52,14 +47,8 @@ if [ -f "CLAUDE.md" ] && grep -q "${SNIPPET_MARKER}" CLAUDE.md; then
   echo "✓ CLAUDE.md already has Gap Analysis block — skipping."
 else
   echo "→ Appending Gap Analysis block to CLAUDE.md ..."
-  if [ ! -f "CLAUDE.md" ]; then
-    echo "# Claude Instructions for ${REPO_NAME}" > CLAUDE.md
-    echo "" >> CLAUDE.md
-  else
-    echo "" >> CLAUDE.md
-    echo "---" >> CLAUDE.md
-    echo "" >> CLAUDE.md
-  fi
+  [ ! -f "CLAUDE.md" ] && echo "# Claude Instructions for ${REPO_NAME}" > CLAUDE.md
+  printf '\n---\n\n' >> CLAUDE.md
   curl -fsSL "${RAW_BASE}/templates/CLAUDE.md.snippet" >> CLAUDE.md
   echo "✓ CLAUDE.md updated."
 fi
@@ -82,7 +71,7 @@ on:
 
 jobs:
   lifecycle:
-    uses: ${STANDARD_REPO}/.github/workflows/gap-lifecycle.yml@${STANDARD_REF}
+    uses: ${ORG_GITHUB}/.github/workflows/reusable-gap-lifecycle.yml@main
     with:
       gaps_file: 'GAPS.md'
     secrets: inherit
@@ -91,8 +80,6 @@ EOF
 fi
 
 echo ""
-
-# ── Done ──────────────────────────────────────────────────────────────────────
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  Bootstrap complete!"
 echo ""
@@ -102,8 +89,7 @@ echo "  2. Commit all three files:"
 echo "     git add GAPS.md CLAUDE.md ${WORKFLOW_PATH}"
 echo "     git commit -m 'chore: bootstrap gap analysis standard v1.0'"
 echo "     git push"
-echo "  3. When a PR closes a gap, include 'Closes GAP-NNN' in the PR body."
-echo "     The action will auto-move the row to Completed on merge."
+echo "  3. When a PR closes a gap, include 'Closes GAP-NNN' in the body."
 echo ""
 echo "  Spec: https://github.com/${STANDARD_REPO}/blob/main/SPEC.md"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
